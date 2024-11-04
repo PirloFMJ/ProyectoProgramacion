@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Ventas</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Listado de Ventas</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID Venta</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Empleado</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td>{{ venta.id_venta }}</td>
+                    <td>{{ venta.fecha_venta }}</td>
+                    <td>{{ venta.nit_cliente.nombre_completo }}</td>
+                    <td>{{ venta.id_usuario.nombre_usuario }}</td> <!-- Mostrar el nombre del empleado -->
+                    <td>{{ venta.total_venta }}</td>
+                    <td>
+                        <a href="{% url 'detalle_venta' venta.id_venta %}" class="btn btn-info">Ver más</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No hay ventas registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
