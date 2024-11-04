@@ -1,4 +1,9 @@
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .forms import LoginForm
 from .forms import ProductoForm, ClienteForm, Cliente, CategoriaForm, CategoriaProducto, EmpleadoForm, ProveedorForm
 from .models import Empleado, Proveedor, Producto, Venta, DetalleVenta
 from .models import Compra, DetalleCompra, Inventario, Cliente
@@ -7,7 +12,8 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 import json
-
+from django.shortcuts import render, get_object_or_404
+from .models import Venta, DetalleVenta
 
 
 def crear_producto(request):
@@ -267,3 +273,44 @@ def inventario_view(request):
     inventario = Inventario.objects.all().order_by('id_producto', 'fecha_expiracion')
     return render(request, 'inventario/inventario.html', {'inventario': inventario})
 
+
+def login_view(request):
+    if request.method == 'POST':
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('inicio')  # Redirige a la página de inicio si el login es exitoso
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos.')
+    else:
+        form = LoginForm()
+
+    return render(request, 'inventario/login.html', {'form': form})
+
+@login_required
+def inicio_view(request):
+    user = request.user
+
+    # Verifica si el usuario pertenece al grupo "Empleados"
+    es_empleado = user.groups.filter(name="Empleados").exists()
+
+    return render(request, 'inventario/inicio.html', {'es_empleado': es_empleado})
+
+@login_required
+def listar_ventas(request):
+    ventas = Venta.objects.all()  # Obtiene todas las ventas
+    return render(request, 'inventario/listar_ventas.html', {'ventas': ventas})
+
+@login_required
+def detalle_venta(request, venta_id):
+    venta = get_object_or_404(Venta, id_venta=venta_id)  # Obtiene la venta específica por su ID
+    detalles = DetalleVenta.objects.filter(id_venta=venta)  # Obtiene todos los productos en esa venta
+
+    return render(request, 'inventario/detalle_venta.html', {
+        'venta': venta,
+        'detalles': detalles
+    })

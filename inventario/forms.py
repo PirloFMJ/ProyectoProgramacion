@@ -61,3 +61,17 @@ class ProveedorForm(forms.ModelForm):
             'direccion_proveedor': forms.Textarea(attrs={'class': 'form-control'}),
             'telefono_proveedor': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=100, label="Usuario")
+    password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
+
+    class LoginForm(forms.Form):
+        username = forms.CharField(
+            label="Usuario",
+            widget=forms.TextInput(attrs={'class': 'form-control'})
+        )
+        password = forms.CharField(
+            label="Contraseña",
+            widget=forms.PasswordInput(attrs={'class': 'form-control'})
+        )

@@ -9,7 +9,26 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Inventario de Productos</h2>
+    <nav class="sidebar">
+           <ul class="sidebar">
+            <!-- Enlaces a cada formulario de creación -->
+            <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+            <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+            <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+            <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+            <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+            <!-- Enlaces a cada vista de lista -->
+            <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+            <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+            <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+            <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+            <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+               <li><a href="{% url 'compra' %}">Comprar</a></li>
+               <li><a href="{% url 'venta' %}">Vender</a></li>
+        </ul>
+       </nav>
+        <div class="content">
+            <h2>Inventario de Productos</h2>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -34,6 +53,8 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
+
     </div>
 </body>
 </html>
