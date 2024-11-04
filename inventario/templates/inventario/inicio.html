@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Panel de Control</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Panel de Control</h2>
+        <p>Usa los siguientes enlaces para navegar a cada formulario y vista de lista:</p>
+        <ul>
+            <!-- Enlaces a cada formulario de creación -->
+            <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+            <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+            <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+            <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+            <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+            <!-- Enlaces a cada vista de lista -->
+            <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+            <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+            <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+            <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+            <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+        </ul>
+    </div>
+</body>
+</html>

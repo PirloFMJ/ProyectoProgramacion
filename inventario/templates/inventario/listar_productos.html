@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Lista de Productos</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Lista de Productos</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID Producto</th>
+                    <th>Categoría</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Precio Compra</th>
+                    <th>Precio Venta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id_producto }}</td>
+                    <td>{{ producto.id_categoria.nombre_categoria }}</td>
+                    <td>{{ producto.nombre_producto }}</td>
+                    <td>{{ producto.descripcion_producto }}</td>
+                    <td>{{ producto.precio_compra }}</td>
+                    <td>{{ producto.precio_venta }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'crear_producto' %}" class="btn btn-primary">Agregar Nuevo Producto</a>
+    </div>
+</body>
+</html>

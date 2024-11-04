@@ -1,0 +1,177 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Pedido de Venta</title>
+    <script>
+        let totalPedido = 0;
+
+        function agregarProducto() {
+            const productoSelect = document.getElementById("producto");
+            const productoId = productoSelect.value;
+            const productoNombre = productoSelect.options[productoSelect.selectedIndex].text;
+            const precio = parseFloat(productoSelect.options[productoSelect.selectedIndex].dataset.precio);
+            const cantidad = parseInt(document.getElementById("cantidad").value);
+
+            if (!productoId || isNaN(cantidad) || cantidad <= 0) {
+                alert("Por favor, selecciona un producto y una cantidad válida.");
+                return;
+            }
+
+            const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
+            let productoYaAgregado = false;
+
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const nombreProductoEnFila = row.cells[0].innerText;
+
+                if (nombreProductoEnFila === productoNombre) {
+                    const cantidadActual = parseInt(row.cells[1].innerText);
+                    const nuevaCantidad = cantidadActual + cantidad;
+                    const nuevoTotalProducto = nuevaCantidad * precio;
+
+                    row.cells[1].innerText = nuevaCantidad;
+                    row.cells[3].innerText = nuevoTotalProducto.toFixed(2);
+
+                    totalPedido += cantidad * precio;
+                    document.getElementById("total").innerText = totalPedido.toFixed(2);
+
+                    productoYaAgregado = true;
+                    break;
+                }
+            }
+
+            if (!productoYaAgregado) {
+                const totalProducto = precio * cantidad;
+                totalPedido += totalProducto;
+
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td>${productoNombre}</td>
+                    <td>${cantidad}</td>
+                    <td>${precio.toFixed(2)}</td>
+                    <td>${totalProducto.toFixed(2)}</td>
+                `;
+
+                document.getElementById("total").innerText = totalPedido.toFixed(2);
+            }
+        }
+
+        function completarPedido() {
+            const cliente = document.getElementById("cliente").value;
+            const empleado = document.getElementById("empleado").value;
+            const total = parseFloat(document.getElementById("total").innerText);
+            const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
+            const productos = [];
+
+            for (let i = 0; i < table.rows.length; i++) {
+                const row = table.rows[i];
+                const productoNombre = row.cells[0].innerText;
+                const cantidad = parseInt(row.cells[1].innerText);
+                const precio = parseFloat(row.cells[2].innerText);
+
+                productos.push({
+                    'nombre': productoNombre,
+                    'cantidad': cantidad,
+                    'precio': precio
+                });
+            }
+
+            if (!cliente || !empleado) {
+                alert("Por favor, selecciona un cliente y un empleado.");
+                return;
+            }
+
+            fetch('{% url "completar_venta" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    'cliente': cliente,
+                    'empleado': empleado,
+                    'productos': productos,
+                    'total': total
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Venta completada y inventario actualizado');
+                    location.reload();
+                } else {
+                    alert(data.error || 'Ocurrió un error');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Pedido de Venta</h2>
+        <table id="pedidoTable" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Las filas de productos se agregarán aquí -->
+            </tbody>
+        </table>
+
+        <div class="form-group">
+            <label for="producto">Seleccionar producto:</label>
+            <select id="producto" class="form-control">
+                <option value="">(Buscar por lista o por nombre)</option>
+                {% for producto in productos %}
+                <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_venta }}">
+                    {{ producto.nombre_producto }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="cantidad">Ingresar cantidad:</label>
+            <input type="number" id="cantidad" class="form-control">
+        </div>
+
+        <button type="button" class="btn btn-warning" onclick="agregarProducto()">Agregar Producto</button>
+
+        <hr>
+
+        <div class="form-group">
+            <label for="cliente">Seleccionar Cliente:</label>
+            <select id="cliente" class="form-control">
+                <option value="">Seleccionar Cliente</option>
+                {% for cliente in clientes %}
+                <option value="{{ cliente.nit_cliente }}">{{ cliente.nombre_completo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="empleado">Seleccionar Empleado:</label>
+            <select id="empleado" class="form-control">
+                <option value="">Seleccionar Empleado</option>
+                {% for empleado in empleados %}
+                <option value="{{ empleado.id_usuario }}">{{ empleado.nombre_usuario }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <h3>Total: <span id="total">0.00</span></h3>
+
+        <button type="button" class="btn btn-warning" onclick="completarPedido()">Completar Pedido</button>
+    </div>
+</body>
+</html>

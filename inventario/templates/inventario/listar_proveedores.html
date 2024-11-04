@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Lista de Proveedores</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>Lista de Proveedores</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>NIT Proveedor</th>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Teléfono</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proveedor in proveedores %}
+                <tr>
+                    <td>{{ proveedor.nit_proveedor }}</td>
+                    <td>{{ proveedor.nombre_proveedor }}</td>
+                    <td>{{ proveedor.direccion_proveedor }}</td>
+                    <td>{{ proveedor.telefono_proveedor }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url 'crear_proveedor' %}" class="btn btn-primary">Agregar Nuevo Proveedor</a>
+    </div>
+</body>
+</html>

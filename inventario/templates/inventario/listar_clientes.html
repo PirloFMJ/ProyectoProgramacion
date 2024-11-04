@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Listado de Clientes</title>
+</head>
+<body>
+    <h1>Listado de Clientes</h1>
+    <table>
+        <tr>
+            <th>NIT</th>
+            <th>Nombre Completo</th>
+            <th>Número de Teléfono</th>
+            <th>Email</th>
+        </tr>
+        {% for cliente in clientes %}
+        <tr>
+            <td>{{ cliente.nit_cliente }}</td>
+            <td>{{ cliente.nombre_completo }}</td>
+            <td>{{ cliente.num_telefono }}</td>
+            <td>{{ cliente.email }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
