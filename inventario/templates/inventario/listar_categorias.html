@@ -6,6 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
     <title>Lista de Categorías</title>
+    <script>
+        function eliminarCategoria(categoriaId) {
+            if (confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
+                fetch(`/categorias/eliminar/${categoriaId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Token CSRF para proteger la solicitud
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Recargar la página o eliminar la fila de la tabla sin recargar
+                        location.reload();
+                    } else {
+                        alert('Error al eliminar la categoría.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="container mt-5">
@@ -28,13 +50,14 @@
         </ul>
        </nav>
         <div class="content">
-            <h2>Lista de Categorías</h2>
-        <table class="table">
+            <h2>Listado de Categorías</h2>
+        <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>ID Categoría</th>
                     <th>Nombre</th>
                     <th>Descripción</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -43,6 +66,20 @@
                     <td>{{ categoria.id_categoria }}</td>
                     <td>{{ categoria.nombre_categoria }}</td>
                     <td>{{ categoria.descripcion_categoria }}</td>
+                    <td>
+                        <!-- Ícono para editar -->
+                        <a href="{% url 'editar_categoria' categoria.id_categoria %}" class="btn btn-warning btn-sm">
+                            Editar
+                        </a>
+                        <!-- Ícono para eliminar con confirmación en JavaScript -->
+                        <button onclick="eliminarCategoria({{ categoria.id_categoria }})" class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No hay categorías registradas.</td>
                 </tr>
                 {% endfor %}
             </tbody>

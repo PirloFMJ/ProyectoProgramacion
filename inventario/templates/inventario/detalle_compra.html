@@ -5,16 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
-    <title>Detalle de Venta</title>
+    <title>Detalle de Compra</title>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Detalle de Venta - ID: {{ venta.id_venta }}</h2>
-        <p><strong>Fecha de Venta:</strong> {{ venta.fecha_venta }}</p>
-        <p><strong>Cliente:</strong> {{ venta.nit_cliente.nombre_completo }}</p>
-        <p><strong>Total de Venta:</strong> {{ venta.total_venta }}</p>
+        <h2>Detalle de Compra - ID: {{ compra.id_compra }}</h2>
+        <p><strong>Fecha de Compra:</strong> {{ compra.fecha_compra }}</p>
+        <p><strong>Proveedor:</strong> {{ compra.nit_proveedor.nombre_proveedor }}</p>
+        <p><strong>Total de Compra:</strong> {{ compra.total_compra }}</p>
 
-        <h3>Productos en esta Venta</h3>
+        <h3>Productos en esta Compra</h3>
         <table class="table table-bordered">
             <thead>
                 <tr>
@@ -22,6 +22,7 @@
                     <th>Cantidad</th>
                     <th>Precio Unitario</th>
                     <th>Subtotal</th>
+                    <th>Fecha de Expiración</th> <!-- Columna para la fecha de expiración -->
                 </tr>
             </thead>
             <tbody>
@@ -29,18 +30,19 @@
                 <tr>
                     <td>{{ detalle.id_producto.nombre_producto }}</td>
                     <td>{{ detalle.cantidad_producto }}</td>
-                    <td>{{ detalle.id_producto.precio_venta }}</td>
+                    <td>{{ detalle.id_producto.precio_compra }}</td>
                     <td>{{ detalle.total_producto }}</td>
+                    <td>{{ detalle.fecha_expiracion }}</td> <!-- Mostrar la fecha de expiración -->
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4">No hay productos en esta venta.</td>
+                    <td colspan="5">No hay productos en esta compra.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <a href="{% url 'ventas_listar' %}" class="btn btn-secondary">Volver al Listado de Ventas</a>
+        <a href="{% url 'compras_listar' %}" class="btn btn-secondary">Volver al Listado de Compras</a>
     </div>
 </body>
 </html>

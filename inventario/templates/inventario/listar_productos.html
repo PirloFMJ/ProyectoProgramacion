@@ -5,6 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <script>
+        function eliminarProducto(productoId) {
+            if (confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+                fetch(`/productos/eliminar/${productoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Token CSRF para proteger la solicitud
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();  // Recargar la página para reflejar la eliminación
+                    } else {
+                        alert('Error al eliminar el producto.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
     <title>Lista de Productos</title>
 </head>
 <body>
@@ -32,26 +53,39 @@
        </nav>
         <div class="content">
              <h2>Lista de Productos</h2>
-        <table class="table">
+        <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>ID Producto</th>
-                    <th>Categoría</th>
                     <th>Nombre</th>
+                    <th>Categoría</th>
                     <th>Descripción</th>
-                    <th>Precio Compra</th>
-                    <th>Precio Venta</th>
+                    <th>Precio de Compra</th>
+                    <th>Precio de Venta</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for producto in productos %}
                 <tr>
                     <td>{{ producto.id_producto }}</td>
-                    <td>{{ producto.id_categoria.nombre_categoria }}</td>
                     <td>{{ producto.nombre_producto }}</td>
+                    <td>{{ producto.id_categoria.nombre_categoria }}</td>
                     <td>{{ producto.descripcion_producto }}</td>
                     <td>{{ producto.precio_compra }}</td>
                     <td>{{ producto.precio_venta }}</td>
+                    <td>
+                        <!-- Botón para editar -->
+                        <a href="{% url 'editar_producto' producto.id_producto %}" class="btn btn-warning btn-sm">Editar</a>
+                        <!-- Botón para eliminar con confirmación en JavaScript -->
+                        <button onclick="eliminarProducto('{{ producto.id_producto }}')" class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">No hay productos registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

@@ -2,20 +2,15 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import LoginForm
-from .forms import ProductoForm, ClienteForm, Cliente, CategoriaForm, CategoriaProducto, EmpleadoForm, ProveedorForm
-from .models import Empleado, Proveedor, Producto, Venta, DetalleVenta
-from .models import Compra, DetalleCompra, Inventario, Cliente
+from django.shortcuts import render, get_object_or_404
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from .forms import LoginForm, ProductoForm, ClienteForm, Cliente, CategoriaForm, CategoriaProducto, EmpleadoForm, ProveedorForm
+from .models import Empleado, Proveedor, Producto, Venta, DetalleVenta, Compra, DetalleCompra, Inventario, Cliente, CategoriaProducto
 import json
-from django.shortcuts import render, get_object_or_404
-from .models import Venta, DetalleVenta
-
-
 def crear_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST)
@@ -117,7 +112,7 @@ def compra_view(request):
     })
 
 
-@csrf_exempt  # Para depuración; en producción maneja CSRF adecuadamente
+@csrf_exempt  # Solo para depuración; en producción maneja CSRF adecuadamente
 @transaction.atomic
 def completar_compra(request):
     if request.method == 'POST':
@@ -151,7 +146,7 @@ def completar_compra(request):
             # Procesar los productos y actualizar el inventario
             for producto_data in productos_compra:
                 producto_nombre = producto_data['nombre']
-                fecha_expiracion = producto_data['fecha_expiracion']
+                fecha_expiracion = producto_data['fecha_expiracion']  # Fecha de caducidad
                 cantidad = int(producto_data['cantidad'])
                 precio = float(producto_data['precio'])
 
@@ -160,16 +155,19 @@ def completar_compra(request):
                 except Producto.DoesNotExist:
                     return JsonResponse({'error': f'Producto con nombre {producto_nombre} no existe'}, status=400)
 
+                # Crear el detalle de compra incluyendo la fecha de expiración
                 DetalleCompra.objects.create(
                     id_compra=compra,
                     id_producto=producto,
                     cantidad_producto=cantidad,
-                    total_producto=precio * cantidad
+                    total_producto=precio * cantidad,
+                    fecha_expiracion=fecha_expiracion  # Guardamos la fecha de expiración aquí
                 )
 
+                # Actualizar o crear un registro en el inventario
                 inventario_item, created = Inventario.objects.get_or_create(
                     id_producto=producto,
-                    fecha_expiracion=fecha_expiracion,
+                    fecha_expiracion=fecha_expiracion,  # Asocia la fecha de expiración
                     defaults={'cantidad_disponible': 0}
                 )
 
@@ -186,7 +184,6 @@ def completar_compra(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
-
 
 @csrf_exempt  # Solo para depuración; en producción maneja CSRF adecuadamente
 @transaction.atomic
@@ -269,11 +266,188 @@ def completar_venta(request):
 
 
 def inventario_view(request):
-    # Recuperar todos los productos del inventario
+    # Filtrar todos los productos del inventario
+    inventario = Inventario.objects.all()
+
+    # Eliminar productos con cantidad disponible igual a 0
+    inventario.filter(cantidad_disponible=0).delete()
+
+    # Refrescar el inventario después de eliminar los productos sin existencias
     inventario = Inventario.objects.all().order_by('id_producto', 'fecha_expiracion')
+
     return render(request, 'inventario/inventario.html', {'inventario': inventario})
 
+@login_required
+def listar_ventas(request):
+    ventas = Venta.objects.all()  # Obtiene todas las ventas
+    return render(request, 'inventario/listar_ventas.html', {'ventas': ventas})
 
+
+@login_required
+def detalle_venta(request, venta_id):
+    venta = get_object_or_404(Venta, id_venta=venta_id)  # Obtiene la venta específica por su ID
+    detalles = DetalleVenta.objects.filter(id_venta=venta)  # Obtiene todos los productos en esa venta
+
+    return render(request, 'inventario/detalle_venta.html', {
+        'venta': venta,
+        'detalles': detalles
+    })
+@login_required
+def listar_categorias(request):
+    categorias = CategoriaProducto.objects.all()
+    return render(request, 'inventario/listar_categorias.html', {'categorias': categorias})
+
+
+@login_required
+def editar_categoria(request, categoria_id):
+    categoria = get_object_or_404(CategoriaProducto, id_categoria=categoria_id)
+
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoría actualizada correctamente.')
+            return redirect('categorias_listar')
+    else:
+        form = CategoriaForm(instance=categoria)
+
+    return render(request, 'inventario/listar_compras.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def eliminar_categoria(request, categoria_id):
+    if request.method == 'POST':
+        categoria = get_object_or_404(CategoriaProducto, id_categoria=categoria_id)
+        categoria.delete()
+        return JsonResponse({'success': True})  # Devolver JSON para confirmar la eliminación
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+#EDITAR CLIENTE
+
+@login_required
+def editar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, nit_cliente=cliente_id)
+
+    if request.method == 'POST':
+        form = ClienteForm(request.POST, instance=cliente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cliente actualizado correctamente.')
+            return redirect('clientes_listar')
+    else:
+        form = ClienteForm(instance=cliente)
+
+    return render(request, 'inventario/editar_cliente.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def eliminar_cliente(request, cliente_id):
+    if request.method == 'POST':
+        cliente = get_object_or_404(Cliente, nit_cliente=cliente_id)
+        cliente.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+#LISTADO DE COMPRAS
+@login_required
+def listar_compras(request):
+    compras = Compra.objects.all()  # Obtiene todas las compras
+    return render(request, 'inventario/listar_compras.html', {'compras': compras})
+
+@login_required
+def detalle_compra(request, compra_id):
+    compra = get_object_or_404(Compra, id_compra=compra_id)  # Obtiene la compra específica por su ID
+    detalles = DetalleCompra.objects.filter(id_compra=compra)  # Obtiene todos los productos en esa compra
+
+    return render(request, 'inventario/detalle_compra.html', {
+        'compra': compra,
+        'detalles': detalles
+    })
+
+#LISTADO DE EMPLEADOS
+@login_required
+def editar_empleado(request, empleado_id):
+    empleado = get_object_or_404(Empleado, id_usuario=empleado_id)
+
+    if request.method == 'POST':
+        form = EmpleadoForm(request.POST, instance=empleado)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Empleado actualizado correctamente.')
+            return redirect('empleados_listar')
+    else:
+        form = EmpleadoForm(instance=empleado)
+
+    return render(request, 'inventario/editar_empleado.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def eliminar_empleado(request, empleado_id):
+    if request.method == 'POST':
+        empleado = get_object_or_404(Empleado, id_usuario=empleado_id)
+        empleado.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+#EDITAR PRODUCTOS
+@login_required
+def editar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, id_producto=producto_id)
+
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Producto actualizado correctamente.')
+            return redirect('productos_listar')
+    else:
+        form = ProductoForm(instance=producto)
+
+    return render(request, 'inventario/editar_producto.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def eliminar_producto(request, producto_id):
+    if request.method == 'POST':
+        producto = get_object_or_404(Producto, id_producto=producto_id)
+        producto.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+#EDITAR PROVEEDORES
+@login_required
+def editar_proveedor(request, proveedor_id):
+    proveedor = get_object_or_404(Proveedor, nit_proveedor=proveedor_id)
+
+    if request.method == 'POST':
+        form = ProveedorForm(request.POST, instance=proveedor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Proveedor actualizado correctamente.')
+            return redirect('proveedores_listar')
+    else:
+        form = ProveedorForm(instance=proveedor)
+
+    return render(request, 'inventario/editar_proveedor.html', {'form': form})
+
+
+@login_required
+@csrf_exempt
+def eliminar_proveedor(request, proveedor_id):
+    if request.method == 'POST':
+        proveedor = get_object_or_404(Proveedor, nit_proveedor=proveedor_id)
+        proveedor.delete()
+        return JsonResponse({'success': True})
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+##############################
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -299,18 +473,3 @@ def inicio_view(request):
     es_empleado = user.groups.filter(name="Empleados").exists()
 
     return render(request, 'inventario/inicio.html', {'es_empleado': es_empleado})
-
-@login_required
-def listar_ventas(request):
-    ventas = Venta.objects.all()  # Obtiene todas las ventas
-    return render(request, 'inventario/listar_ventas.html', {'ventas': ventas})
-
-@login_required
-def detalle_venta(request, venta_id):
-    venta = get_object_or_404(Venta, id_venta=venta_id)  # Obtiene la venta específica por su ID
-    detalles = DetalleVenta.objects.filter(id_venta=venta)  # Obtiene todos los productos en esa venta
-
-    return render(request, 'inventario/detalle_venta.html', {
-        'venta': venta,
-        'detalles': detalles
-    })

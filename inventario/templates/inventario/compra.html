@@ -25,31 +25,26 @@
             const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
             let productoYaAgregado = false;
 
-            // Busca si el producto con la misma fecha de expiración ya está en la tabla
             for (let i = 0; i < table.rows.length; i++) {
                 const row = table.rows[i];
                 const nombreProductoEnFila = row.cells[0].innerText;
                 const fechaExpiracionEnFila = row.cells[1].innerText;
 
                 if (nombreProductoEnFila === productoNombre && fechaExpiracionEnFila === fechaExpiracion) {
-                    // Si el producto con la misma fecha de expiración ya existe, actualiza la cantidad y el total
                     const cantidadActual = parseInt(row.cells[2].innerText);
                     const nuevaCantidad = cantidadActual + cantidad;
                     const nuevoTotalProducto = nuevaCantidad * precio;
 
-                    row.cells[2].innerText = nuevaCantidad;  // Actualiza cantidad
-                    row.cells[4].innerText = nuevoTotalProducto.toFixed(2);  // Actualiza total
+                    row.cells[2].innerText = nuevaCantidad;
+                    row.cells[4].innerText = nuevoTotalProducto.toFixed(2);
 
-                    // Actualiza el total del pedido
                     totalPedido += cantidad * precio;
-                    document.getElementById("total").innerText = totalPedido.toFixed(2);
-
+                    actualizarTotal();
                     productoYaAgregado = true;
                     break;
                 }
             }
 
-            // Si el producto con una fecha de expiración diferente no está en la tabla, agrega una nueva fila
             if (!productoYaAgregado) {
                 const totalProducto = precio * cantidad;
                 totalPedido += totalProducto;
@@ -61,20 +56,42 @@
                     <td>${cantidad}</td>
                     <td>${precio.toFixed(2)}</td>
                     <td>${totalProducto.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">X</button></td>
                 `;
 
-                document.getElementById("total").innerText = totalPedido.toFixed(2);
+                actualizarTotal();
             }
+        }
+
+        function eliminarProducto(button) {
+            // Eliminar la fila
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+
+            // Recalcular el total del pedido
+            actualizarTotal();
+        }
+
+        function actualizarTotal() {
+            const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
+            let nuevoTotal = 0;
+
+            for (let i = 0; i < table.rows.length; i++) {
+                const totalProducto = parseFloat(table.rows[i].cells[4].innerText);
+                nuevoTotal += totalProducto;
+            }
+
+            totalPedido = nuevoTotal;
+            document.getElementById("total").innerText = totalPedido.toFixed(2);
         }
 
         function completarPedido() {
             const proveedor = document.getElementById("proveedor").value;
-            const empleado = document.getElementById("empleado").value;  // Obtener el empleado seleccionado
+            const empleado = document.getElementById("empleado").value;
             const total = parseFloat(document.getElementById("total").innerText);
             const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
             const productos = [];
 
-            // Recolectar todos los productos de la tabla de previsualización
             for (let i = 0; i < table.rows.length; i++) {
                 const row = table.rows[i];
                 const productoNombre = row.cells[0].innerText;
@@ -90,12 +107,11 @@
                 });
             }
 
-            if (!proveedor || !empleado) {  // Asegura que el proveedor y el empleado estén seleccionados
+            if (!proveedor || !empleado) {
                 alert("Por favor, selecciona un proveedor y un empleado.");
                 return;
             }
 
-            // Realizar la solicitud AJAX para completar la compra
             fetch('{% url "completar_compra" %}', {
                 method: 'POST',
                 headers: {
@@ -104,7 +120,7 @@
                 },
                 body: JSON.stringify({
                     'proveedor': proveedor,
-                    'empleado': empleado,  // Incluir el empleado en los datos enviados
+                    'empleado': empleado,
                     'productos': productos,
                     'total': total
                 })
@@ -157,8 +173,7 @@
                 <!-- Las filas de productos se agregarán aquí -->
             </tbody>
         </table>
-
-        <div class="form-group">
+         <div class="form-group">
             <label for="producto">Seleccionar producto:</label>
             <select id="producto" class="form-control">
                 <option value="">(Buscar por lista o por nombre)</option>
@@ -208,6 +223,7 @@
 
         <button type="button" class="btn btn-warning" onclick="completarPedido()">Completar Pedido</button>
         <button type="button" class="btn btn-warning" onclick="location.href='{% url 'crear_proveedor' %}'">Agregar Proveedor</button>
+
     </div>
     </div>
 </body>
