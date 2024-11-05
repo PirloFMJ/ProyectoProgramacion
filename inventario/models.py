@@ -76,7 +76,7 @@ class DetalleVenta(models.Model):
     cantidad_producto = models.IntegerField()
     total_producto = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __str__(self):
+    def _str_(self):
         return f"Detalle de venta {self.id_venta}"
 
     def calcular_total_producto(self):

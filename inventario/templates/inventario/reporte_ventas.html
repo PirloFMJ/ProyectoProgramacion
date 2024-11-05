@@ -1,10 +1,99 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Reporte de Ventas</title>
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
 </head>
 <body>
-$END$
+<div class="container mt-5">
+    <nav class="sidebar">
+           <ul class="sidebar">
+            {% if es_empleado %}
+                <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de Ventas</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
+                <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+                <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
+                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+                <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'compra' %}">Comprar</a></li>
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+           </ul>
+       </nav>
+<div class="content">
+            <div class="center-wrapper">
+                <div class="contenedor-login">
+    <h2>Generar Reporte de Ventas</h2>
+    <form method="get" action="{% url 'reporte_ventas' %}">
+        <label for="producto">Producto:</label>
+        <select name="producto" id="producto">
+            <option value="">Todos</option>
+            {% for producto in productos %}
+                <option value="{{ producto.id_producto }}">{{ producto.nombre_producto }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="empleado">Empleado:</label>
+        <select name="empleado" id="empleado">
+            <option value="">Todos</option>
+            {% for empleado in empleados %}
+                <option value="{{ empleado.id_usuario }}">{{ empleado.nombre_usuario }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="cliente">Cliente (NIT):</label>
+        <select name="cliente" id="cliente">
+            <option value="">Todos</option>
+            {% for cliente in clientes %}
+                <option value="{{ cliente.nit_cliente }}">{{ cliente.nit_cliente }} - {{ cliente.nombre_completo }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="fecha_inicio">Fecha Inicio:</label>
+        <input type="date" name="fecha_inicio" id="fecha_inicio">
+
+        <label for="fecha_fin">Fecha Fin:</label>
+        <input type="date" name="fecha_fin" id="fecha_fin">
+
+        <label for="formato">Formato:</label>
+        <select name="formato" id="formato">
+            <option value="excel">Excel</option>
+            <option value="pdf">PDF</option>
+        </select>
+
+        <button type="submit" class="btn btn-secondary" id="btn-enlaces">Generar Reporte</button>
+    </form>
+</div>
+            </div>
+</div>
+</div>
 </body>
 </html>

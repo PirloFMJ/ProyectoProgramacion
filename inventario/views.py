@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
@@ -311,7 +311,7 @@ def editar_categoria(request, categoria_id):
     else:
         form = CategoriaForm(instance=categoria)
 
-    return render(request, 'inventario/listar_compras.html', {'form': form})
+    return render(request, 'inventario/editar_categoria.html', {'form': form})
 
 
 @login_required
@@ -473,3 +473,148 @@ def inicio_view(request):
     es_empleado = user.groups.filter(name="Empleados").exists()
 
     return render(request, 'inventario/inicio.html', {'es_empleado': es_empleado})
+
+@login_required
+def cerrar_sesion(request):
+    logout(request)
+    return redirect('login')  # Redirige a la página de login después de cerrar sesión
+
+#GENERAR REPORTE DE VENTAS
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Venta, DetalleVenta, Empleado, Cliente, Producto
+from openpyxl import Workbook
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.db.models import Q
+import datetime
+
+def reporte_ventas(request):
+    # Obtener los parámetros de los filtros
+    producto_id = request.GET.get('producto')
+    empleado_id = request.GET.get('empleado')
+    cliente_nit = request.GET.get('cliente')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    formato = request.GET.get('formato')  # 'excel' o 'pdf'
+
+    # Aplicar filtros en la consulta de ventas
+    ventas = Venta.objects.all()
+
+    # Filtro por producto específico en los detalles de venta
+    if producto_id:
+        ventas = ventas.filter(detalleventa__id_producto=producto_id)
+
+    # Filtros adicionales
+    if empleado_id:
+        ventas = ventas.filter(id_usuario__id_usuario=empleado_id)
+    if cliente_nit:
+        ventas = ventas.filter(nit_cliente__nit_cliente=cliente_nit)
+    if fecha_inicio:
+        ventas = ventas.filter(fecha_venta__gte=fecha_inicio)
+    if fecha_fin:
+        ventas = ventas.filter(fecha_venta__lte=fecha_fin)
+
+    # Exportar en el formato seleccionado
+    if formato == 'excel':
+        return exportar_reporte_excel(ventas, producto_id)
+    elif formato == 'pdf':
+        return exportar_reporte_pdf(ventas, producto_id)
+    else:
+        # Renderizar la página de reportes con los datos y filtros
+        productos = Producto.objects.all()
+        empleados = Empleado.objects.all()
+        clientes = Cliente.objects.all()
+        return render(request, 'inventario/reporte_ventas.html', {
+            'ventas': ventas,
+            'productos': productos,
+            'empleados': empleados,
+            'clientes': clientes,
+        })
+
+
+def exportar_reporte_excel(ventas, producto_id=None):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Reporte de Ventas'
+
+    # Encabezados de columna
+    headers = ['ID Venta', 'Fecha Venta', 'Cliente', 'Empleado', 'Producto', 'Cantidad', 'Total']
+    worksheet.append(headers)
+
+    # Variable para almacenar el total de todas las ventas
+    total_ventas = 0
+
+    # Filas de datos
+    for venta in ventas:
+        detalles = venta.detalleventa_set.all()
+
+        # Si se aplica filtro de producto, filtrar los detalles de venta
+        if producto_id:
+            detalles = detalles.filter(id_producto__id_producto=producto_id)
+
+        for detalle in detalles:
+            row = [
+                venta.id_venta,
+                venta.fecha_venta,
+                venta.nit_cliente.nombre_completo,
+                venta.id_usuario.nombre_usuario,
+                detalle.id_producto.nombre_producto,
+                detalle.cantidad_producto,
+                f"Q{detalle.total_producto:.2f}"  # Prefijo "Q" agregado
+            ]
+            worksheet.append(row)
+
+            # Sumar el total de cada detalle al total general
+            total_ventas += detalle.total_producto
+
+    # Añadir fila de total de ventas al final
+    worksheet.append([])  # Fila vacía para separación
+    worksheet.append(['', '', '', '', '', 'Total de Ventas:', f"Q{total_ventas:.2f}"])  # Prefijo "Q" agregado al total
+
+    # Respuesta de descarga de archivo Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Ventas.xlsx'
+    workbook.save(response)
+    return response
+
+
+def exportar_reporte_pdf(ventas, producto_id=None):
+    template_path = 'inventario/reporte_ventas_pdf.html'
+
+    # Filtrar detalles de venta según el producto si se aplica filtro
+    ventas_filtradas = []
+    total_ventas = 0  # Variable para almacenar el total de todas las ventas
+
+    for venta in ventas:
+        detalles = venta.detalleventa_set.all()
+
+        if producto_id:
+            detalles = detalles.filter(id_producto__id_producto=producto_id)
+
+        # Solo agregamos la venta si tiene detalles que coincidan con el filtro
+        if detalles.exists():
+            ventas_filtradas.append({
+                'venta': venta,
+                'detalles': detalles
+            })
+            # Sumar los totales de cada detalle al total general
+            for detalle in detalles:
+                total_ventas += detalle.total_producto
+
+    # Pasamos total_ventas con el prefijo "Q" al contexto para usarlo en el template
+    context = {
+        'ventas_filtradas': ventas_filtradas,
+        'total_ventas': f"Q{total_ventas:.2f}"  # Prefijo "Q" agregado al total
+    }
+
+    # Renderizar la plantilla en PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Ventas.pdf'
+    template = get_template(template_path)
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF', status=500)
+    return response

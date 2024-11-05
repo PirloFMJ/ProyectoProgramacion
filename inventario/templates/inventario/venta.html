@@ -53,7 +53,7 @@
                     <td>${cantidad}</td>
                     <td>${precio.toFixed(2)}</td>
                     <td>${totalProducto.toFixed(2)}</td>
-                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">X</button></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)" id="btn-enlaces">X</button></td>
                 `;
 
                 actualizarTotal();
@@ -137,60 +137,78 @@
     <div class="container mt-5">
     <nav class="sidebar">
            <ul class="sidebar">
-            <!-- Enlaces a cada formulario de creación -->
-            <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
-            <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
-            <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
-            <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
-            <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
-            <!-- Enlaces a cada vista de lista -->
-            <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
-            <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
-            <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
-            <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
-            <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
-               <li><a href="{% url 'compra' %}">Comprar</a></li>
-               <li><a href="{% url 'venta' %}">Vender</a></li>
-        </ul>
+            {% if es_empleado %}
+                <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de Ventas</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
+                <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+                <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
+                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+                <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'inventario' %}">Inventario</a></li>
+                <li><a href="{% url 'compra' %}">Comprar</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+           </ul>
        </nav>
         <div class="content">
-            <h2>Pedido de Venta</h2>
-        <table id="pedidoTable" class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Total</th>
-                    <th>Eliminar</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Las filas de productos se agregarán aquí -->
-            </tbody>
-        </table>
-
-        <div class="form-group">
-            <label for="producto">Seleccionar producto:</label>
-            <select id="producto" class="form-control">
-                <option value="">(Buscar por lista o por nombre)</option>
-                {% for producto in productos %}
-                <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_venta }}">
-                    {{ producto.nombre_producto }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="cantidad">Ingresar cantidad:</label>
-            <input type="number" id="cantidad" class="form-control">
-        </div>
-
-        <button type="button" class="btn btn-warning" onclick="agregarProducto()">Agregar Producto</button>
-
+            <div class="center-wrapper">
+                <div class="contenedor-crear">
+                    <h2>Pedido de Venta</h2>
+                        <table id="pedidoTable" class="content-listados-compra table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                        <tbody>
+                            <!-- Las filas de productos se agregarán aquí -->
+                        </tbody>
+                        </table>
+                        <div class="form-group">
+                            <label for="producto">Seleccionar producto:</label>
+                            <select id="producto" class="form-control">
+                            <option value="">(Buscar por lista o por nombre)</option>
+                                {% for producto in productos %}
+                            <option value="{{ producto.id_producto }}" data-precio="{{ producto.precio_venta }}">
+                                {{ producto.nombre_producto }}
+                            </option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                    <div class="form-group">
+                <label for="cantidad">Ingresar cantidad:</label>
+                <input type="number" id="cantidad" class="form-control">
+            </div>
+        <button type="button" class="btn btn-warning" onclick="agregarProducto()" id="btn-enlaces">Agregar Producto</button>
         <hr>
-
         <div class="form-group">
             <label for="cliente">Seleccionar Cliente:</label>
             <select id="cliente" class="form-control">
@@ -213,8 +231,10 @@
 
         <h3>Total: <span id="total">0.00</span></h3>
 
-        <button type="button" class="btn btn-warning" onclick="completarPedido()">Completar Pedido</button>
+        <button type="button" class="btn btn-warning" onclick="completarPedido()" id="btn-enlaces">Completar Pedido</button>
         </div>
     </div>
+         </div>
+     </div>
 </body>
 </html>

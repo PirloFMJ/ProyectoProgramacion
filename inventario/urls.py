@@ -1,10 +1,9 @@
 from django.urls import path
-from .views import listar_ventas, detalle_venta
-from .views import login_view, inicio_view
+from .views import login_view, inicio_view, cerrar_sesion
 from .views import (crear_producto, crear_cliente, listar_clientes, crear_categoria, listar_categorias, crear_empleado, listar_empleados,
 crear_proveedor, listar_proveedores, listar_productos, inicio, venta_view, compra_view, completar_compra, completar_venta, inventario_view,
 editar_proveedor, eliminar_proveedor, editar_categoria, eliminar_categoria, editar_cliente, eliminar_cliente,
-listar_compras, detalle_compra, editar_empleado, eliminar_empleado, editar_producto, eliminar_producto)
+listar_compras, detalle_compra, editar_empleado, eliminar_empleado, editar_producto, eliminar_producto, listar_ventas, detalle_venta, reporte_ventas)
 urlpatterns = [
 path('producto/crear/', crear_producto, name='crear_producto'),
     path('productos/', listar_productos, name='productos_listar'),
@@ -37,6 +36,8 @@ path('producto/crear/', crear_producto, name='crear_producto'),
     path('ventas/<int:venta_id>/', detalle_venta, name='detalle_venta'),
     path('login/', login_view, name='login'),  # Ruta de login
     path('inicio/', inicio_view, name='inicio'),  # Ruta de inicio que verifica el grupo del usuario
+    path('reporte_ventas/', reporte_ventas, name='reporte_ventas'),
     # Redirige la raíz al login
     path('', login_view),
+    path('logout/', cerrar_sesion, name='cerrar_sesion'),
 ]
