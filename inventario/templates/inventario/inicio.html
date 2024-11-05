@@ -1,15 +1,17 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es"">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
-    <title>Panel de Control</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>Panel de Control - Landing</title>
 </head>
-<body>
+<body class="cuerpo-inicio">
+
+    <!-- Contenedor principal con sidebar y contenido -->
     <div class="container mt-5">
-       <nav class="sidebar">
+        <nav class="sidebar">
            <ul class="sidebar">
             {% if es_empleado %}
                 <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
@@ -49,10 +51,19 @@
             {% endif %}
            </ul>
        </nav>
-       <div class="content">
-           <h2>Inicio</h2>
-           <!-- Aquí puedes agregar contenido adicional según el tipo de usuario -->
+
+       <!-- Contenido principal de la landing -->
+       <div class="content" >
+                <div class="contenedor-login" style="text-align: center; background-color: rgb(220, 220, 220)">
+           <h2>Bienvenido a tu Panel de Control</h2>
+           <p>Gestiona tus productos, ventas y mucho más de forma eficiente.</p>
+           <!-- Opciones rápidas -->
+           <br>
+           <br>
+               <a href="{% url 'productos_listar' %}" class="btn" id="btn-enlaces">Ver Productos</a>
+               <a href="{% url 'ventas_listar' %}" class="btn" id="btn-enlaces">Ver Ventas</a>
        </div>
-    </div>
+     </div>
+</div>
 </body>
 </html>
