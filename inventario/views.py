@@ -8,9 +8,15 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.template.loader import get_template
+from django.db.models import Q
+from openpyxl import Workbook
+from xhtml2pdf import pisa
 from .forms import LoginForm, ProductoForm, ClienteForm, Cliente, CategoriaForm, CategoriaProducto, EmpleadoForm, ProveedorForm
 from .models import Empleado, Proveedor, Producto, Venta, DetalleVenta, Compra, DetalleCompra, Inventario, Cliente, CategoriaProducto
 import json
+import datetime
+
 def crear_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST)
@@ -480,15 +486,6 @@ def cerrar_sesion(request):
     return redirect('login')  # Redirige a la página de login después de cerrar sesión
 
 #GENERAR REPORTE DE VENTAS
-from django.shortcuts import render
-from django.http import HttpResponse
-from .models import Venta, DetalleVenta, Empleado, Cliente, Producto
-from openpyxl import Workbook
-from xhtml2pdf import pisa
-from django.template.loader import get_template
-from django.db.models import Q
-import datetime
-
 def reporte_ventas(request):
     # Obtener los parámetros de los filtros
     producto_id = request.GET.get('producto')
@@ -615,6 +612,194 @@ def exportar_reporte_pdf(ventas, producto_id=None):
     html = template.render(context)
     pisa_status = pisa.CreatePDF(html, dest=response)
 
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF', status=500)
+    return response
+
+#REPORTE DE COMPRAS
+
+def reporte_compras(request):
+    # Obtener los parámetros de los filtros
+    producto_id = request.GET.get('producto')
+    empleado_id = request.GET.get('empleado')
+    proveedor_id = request.GET.get('proveedor')
+    fecha_inicio = request.GET.get('fecha_inicio')
+    fecha_fin = request.GET.get('fecha_fin')
+    formato = request.GET.get('formato')  # 'excel' o 'pdf'
+
+    # Aplicar filtros en la consulta de compras
+    compras = Compra.objects.all()
+
+    # Filtro por producto específico en los detalles de compra
+    if producto_id:
+        compras = compras.filter(detallecompra__id_producto=producto_id)
+
+    # Filtros adicionales
+    if empleado_id:
+        compras = compras.filter(id_usuario__id_usuario=empleado_id)
+    if proveedor_id:
+        compras = compras.filter(nit_proveedor__nit_proveedor=proveedor_id)
+    if fecha_inicio:
+        compras = compras.filter(fecha_compra__gte=fecha_inicio)
+    if fecha_fin:
+        compras = compras.filter(fecha_compra__lte=fecha_fin)
+
+    # Exportar en el formato seleccionado
+    if formato == 'excel':
+        return exportar_reporte_compras_excel(compras, producto_id)
+    elif formato == 'pdf':
+        return exportar_reporte_compras_pdf(compras, producto_id)
+    else:
+        # Renderizar la página de reportes con los datos y filtros
+        productos = Producto.objects.all()
+        empleados = Empleado.objects.all()
+        proveedores = Proveedor.objects.all()
+        return render(request, 'inventario/reporte_compras.html', {
+            'compras': compras,
+            'productos': productos,
+            'empleados': empleados,
+            'proveedores': proveedores,
+        })
+
+
+def exportar_reporte_compras_excel(compras, producto_id=None):
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Reporte de Compras'
+
+    # Encabezados de columna
+    headers = ['ID Compra', 'Fecha Compra', 'Proveedor', 'Empleado', 'Producto', 'Cantidad', 'Total']
+    worksheet.append(headers)
+
+    # Variable para almacenar el total de todas las compras
+    total_compras = 0
+
+    # Filas de datos
+    for compra in compras:
+        detalles = compra.detallecompra_set.all()
+
+        # Si se aplica filtro de producto, filtrar los detalles de compra
+        if producto_id:
+            detalles = detalles.filter(id_producto__id_producto=producto_id)
+
+        for detalle in detalles:
+            row = [
+                compra.id_compra,
+                compra.fecha_compra,
+                compra.nit_proveedor.nombre_proveedor,
+                compra.id_usuario.nombre_usuario,
+                detalle.id_producto.nombre_producto,
+                detalle.cantidad_producto,
+                f"Q{detalle.total_producto:.2f}"  # Prefijo "Q" agregado
+            ]
+            worksheet.append(row)
+
+            # Sumar el total de cada detalle al total general
+            total_compras += detalle.total_producto
+
+    # Añadir fila de total de compras al final
+    worksheet.append([])  # Fila vacía para separación
+    worksheet.append(['', '', '', '', '', 'Total de Compras:', f"Q{total_compras:.2f}"])  # Prefijo "Q" agregado al total
+
+    # Respuesta de descarga de archivo Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Compras.xlsx'
+    workbook.save(response)
+    return response
+
+
+def exportar_reporte_compras_pdf(compras, producto_id=None):
+    template_path = 'inventario/reporte_compras_pdf.html'
+
+    # Filtrar detalles de compra según el producto si se aplica filtro
+    compras_filtradas = []
+    total_compras = 0  # Variable para almacenar el total de todas las compras
+
+    for compra in compras:
+        detalles = compra.detallecompra_set.all()
+
+        if producto_id:
+            detalles = detalles.filter(id_producto__id_producto=producto_id)
+
+        # Solo agregamos la compra si tiene detalles que coincidan con el filtro
+        if detalles.exists():
+            compras_filtradas.append({
+                'compra': compra,
+                'detalles': detalles
+            })
+            # Sumar los totales de cada detalle al total general
+            for detalle in detalles:
+                total_compras += detalle.total_producto
+
+    # Pasamos total_compras con el prefijo "Q" al contexto para usarlo en el template
+    context = {
+        'compras_filtradas': compras_filtradas,
+        'total_compras': f"Q{total_compras:.2f}"  # Prefijo "Q" agregado al total
+    }
+
+    # Renderizar la plantilla en PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Compras.pdf'
+    template = get_template(template_path)
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    if pisa_status.err:
+        return HttpResponse('Hubo un error al generar el PDF', status=500)
+    return response
+
+def reporte_inventario(request, formato):
+    # Obtener los datos del inventario
+    inventario = Inventario.objects.all().order_by('id_producto')
+
+    if formato == 'excel':
+        # Generar reporte en formato Excel
+        return generar_reporte_excel(inventario)
+    elif formato == 'pdf':
+        # Generar reporte en formato PDF
+        return generar_reporte_pdf(inventario)
+    else:
+        return HttpResponse("Formato de reporte no válido", status=400)
+
+def generar_reporte_excel(inventario):
+    # Crear el archivo Excel
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = 'Reporte de Inventario'
+
+    # Encabezados de columna
+    headers = ['ID Producto', 'Nombre Producto', 'Fecha Expiración', 'Cantidad Disponible']
+    worksheet.append(headers)
+
+    # Agregar filas de datos
+    for item in inventario:
+        row = [
+            item.id_producto.id_producto,
+            item.id_producto.nombre_producto,
+            item.fecha_expiracion,
+            item.cantidad_disponible,
+        ]
+        worksheet.append(row)
+
+    # Respuesta de descarga de archivo Excel
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Inventario.xlsx'
+    workbook.save(response)
+    return response
+
+def generar_reporte_pdf(inventario):
+    # Configurar la plantilla PDF
+    template_path = 'inventario/reporte_inventario_pdf.html'
+    context = {'inventario': inventario}
+
+    # Renderizar la plantilla en PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=Reporte_de_Inventario.pdf'
+    template = get_template(template_path)
+    html = template.render(context)
+    pisa_status = pisa.CreatePDF(html, dest=response)
+
+    # Verificar si hubo algún error al generar el PDF
     if pisa_status.err:
         return HttpResponse('Hubo un error al generar el PDF', status=500)
     return response

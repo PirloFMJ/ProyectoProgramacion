@@ -34,10 +34,10 @@
                 <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
                 <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
                 <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
-                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
                 <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
                 <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
                 <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'inventario' %}">Inventario</a></li>
                 <li><a href="{% url 'compra' %}">Comprar</a></li>
                 <li><a href="{% url 'venta' %}">Vender</a></li>
                 <li class="sidebar-footer">
@@ -81,6 +81,7 @@
                 </tbody>
             </table>
         </div>
+        <a href="{% url 'reporte_compras' %}" class="btn btn-info" id="btn-enlaces">Generar Reporte de Compras</a>
         </div>
     </div>
 </body>

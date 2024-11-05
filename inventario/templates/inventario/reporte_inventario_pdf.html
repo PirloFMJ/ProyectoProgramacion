@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Inventario</title>
+</head>
+<body>
+    <h2>Reporte de Inventario</h2>
+    <table border="1" cellspacing="0" cellpadding="5">
+        <thead>
+            <tr>
+                <th>ID Producto</th>
+                <th>Nombre</th>
+                <th>Cantidad Disponible</th>
+                <th>Fecha de Expiración</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventario %}
+            <tr>
+                <td>{{ item.id_producto.id_producto }}</td>
+                <td>{{ item.id_producto.nombre_producto }}</td>
+                <td>{{ item.cantidad_disponible }}</td>
+                <td>{{ item.fecha_expiracion }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

@@ -6,6 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario de Productos</title>
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <script>
+    // Función para actualizar la acción del formulario según el formato seleccionado
+    function actualizarAccion() {
+        const formato = document.getElementById("formato").value;
+        const form = document.getElementById("reporteForm");
+
+        // Cambiar la URL en la acción del formulario según el formato seleccionado
+        if (formato === 'excel') {
+            form.action = "{% url 'reporte_inventario' 'excel' %}";
+        } else if (formato === 'pdf') {
+            form.action = "{% url 'reporte_inventario' 'pdf' %}";
+        }
+    }
+</script>
 </head>
 <body>
     <div class="container mt-5">
@@ -77,6 +91,14 @@
             </tbody>
         </table>
         </div>
+      <form method="get" action="{% url 'reporte_inventario' 'excel' %}" id="reporteForm">
+    <label for="formato">Formato del reporte:</label>
+    <select name="formato" id="formato" class="form-control" onchange="actualizarAccion()">
+        <option value="excel">Excel</option>
+        <option value="pdf">PDF</option>
+    </select>
+    <button type="submit" class="btn btn-primary mt-2" id="btn-enlaces">Generar Reporte</button>
+</form>
         </div>
     </div>
 </body>

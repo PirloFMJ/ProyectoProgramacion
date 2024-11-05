@@ -328,6 +328,71 @@ hr {
     text-align: center;
 }
 
+.header {
+    background-color: #34495e;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-content h1 {
+    font-size: 24px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+.user-info p {
+    margin-right: 10px;
+}
+
+.quick-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 15px;
+}
+
+.quick-actions .btn {
+    padding: 12px 20px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.quick-actions .btn:hover {
+    background-color: #2980b9;
+}
+
+.cuerpo-inicio {
+    background-image: url("fondo.jpg"); /* Usa el nombre de tu imagen */
+    background-size: cover; /* Ajusta el tamaño para cubrir toda la pantalla */
+    background-position: center; /* Centra la imagen */
+    background-repeat: no-repeat; /* Evita que se repita */
+}
+.cuerpo-inicio::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6); /* Ajusta la opacidad (0.5 en este caso) */
+    z-index: 1;
+}
+
+.container, .content, .sidebar {
+    position: relative;
+    z-index: 2;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
