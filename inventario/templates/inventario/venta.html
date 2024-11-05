@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
     <title>Pedido de Venta</title>
-    <script>
+<script>
         let totalPedido = 0;
 
         function agregarProducto() {
@@ -37,8 +37,7 @@
                     row.cells[3].innerText = nuevoTotalProducto.toFixed(2);
 
                     totalPedido += cantidad * precio;
-                    document.getElementById("total").innerText = totalPedido.toFixed(2);
-
+                    actualizarTotal();
                     productoYaAgregado = true;
                     break;
                 }
@@ -54,10 +53,33 @@
                     <td>${cantidad}</td>
                     <td>${precio.toFixed(2)}</td>
                     <td>${totalProducto.toFixed(2)}</td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)">X</button></td>
                 `;
 
-                document.getElementById("total").innerText = totalPedido.toFixed(2);
+                actualizarTotal();
             }
+        }
+
+        function eliminarProducto(button) {
+            // Eliminar la fila
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+
+            // Recalcular el total del pedido
+            actualizarTotal();
+        }
+
+        function actualizarTotal() {
+            const table = document.getElementById("pedidoTable").getElementsByTagName("tbody")[0];
+            let nuevoTotal = 0;
+
+            for (let i = 0; i < table.rows.length; i++) {
+                const totalProducto = parseFloat(table.rows[i].cells[3].innerText);
+                nuevoTotal += totalProducto;
+            }
+
+            totalPedido = nuevoTotal;
+            document.getElementById("total").innerText = totalPedido.toFixed(2);
         }
 
         function completarPedido() {
@@ -140,6 +162,7 @@
                     <th>Cantidad</th>
                     <th>Precio</th>
                     <th>Total</th>
+                    <th>Eliminar</th>
                 </tr>
             </thead>
             <tbody>
@@ -192,7 +215,6 @@
 
         <button type="button" class="btn btn-warning" onclick="completarPedido()">Completar Pedido</button>
         </div>
-
     </div>
 </body>
 </html>

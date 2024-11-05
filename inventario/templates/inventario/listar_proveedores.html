@@ -5,6 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <script>
+        function eliminarProveedor(proveedorId) {
+            if (confirm("¿Estás seguro de que deseas eliminar este proveedor?")) {
+                fetch(`/proveedores/eliminar/${proveedorId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'  // Token CSRF para proteger la solicitud
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();  // Recargar la página para reflejar la eliminación
+                    } else {
+                        alert('Error al eliminar el proveedor.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+    </script>
     <title>Lista de Proveedores</title>
 </head>
 <body>
@@ -29,13 +50,14 @@
        </nav>
         <div class="content">
             <h2>Lista de Proveedores</h2>
-        <table class="table">
+         <table class="table table-bordered">
             <thead>
                 <tr>
                     <th>NIT Proveedor</th>
                     <th>Nombre</th>
                     <th>Dirección</th>
                     <th>Teléfono</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +67,18 @@
                     <td>{{ proveedor.nombre_proveedor }}</td>
                     <td>{{ proveedor.direccion_proveedor }}</td>
                     <td>{{ proveedor.telefono_proveedor }}</td>
+                    <td>
+                        <!-- Botón para editar -->
+                        <a href="{% url 'editar_proveedor' proveedor.nit_proveedor %}" class="btn btn-warning btn-sm">Editar</a>
+                        <!-- Botón para eliminar con confirmación en JavaScript -->
+                        <button onclick="eliminarProveedor('{{ proveedor.nit_proveedor }}')" class="btn btn-danger btn-sm">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No hay proveedores registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>

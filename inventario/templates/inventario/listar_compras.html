@@ -1,19 +1,44 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Categoría</title>
+        <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <title>Listado de Compras</title>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Editar Categoría</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-success">Guardar Cambios</button>
-            <a href="{% url 'categorias_listar' %}" class="btn btn-secondary">Cancelar</a>
-        </form>
+        <h2>Listado de Compras</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID Compra</th>
+                    <th>Fecha</th>
+                    <th>Proveedor</th>
+                    <th>Total</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for compra in compras %}
+                <tr>
+                    <td>{{ compra.id_compra }}</td>
+                    <td>{{ compra.fecha_compra }}</td>
+                    <td>{{ compra.nit_proveedor.nombre_proveedor }}</td>
+                    <td>{{ compra.total_compra }}</td>
+                    <td>
+                        <a href="{% url 'detalle_compra' compra.id_compra %}" class="btn btn-info">Ver más</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No hay compras registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
+
