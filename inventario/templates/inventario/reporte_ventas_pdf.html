@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Ventas</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; border: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .total-row { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Reporte de Ventas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID Venta</th>
+                <th>Fecha Venta</th>
+                <th>Cliente</th>
+                <th>Empleado</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta_data in ventas_filtradas %}
+                {% for detalle in venta_data.detalles %}
+                <tr>
+                    <td>{{ venta_data.venta.id_venta }}</td>
+                    <td>{{ venta_data.venta.fecha_venta }}</td>
+                    <td>{{ venta_data.venta.nit_cliente.nombre_completo }}</td>
+                    <td>{{ venta_data.venta.id_usuario.nombre_usuario }}</td>
+                    <td>{{ detalle.id_producto.nombre_producto }}</td>
+                    <td>{{ detalle.cantidad_producto }}</td>
+                    <td>Q{{ detalle.total_producto }}</td>  <!-- Prefijo "Q" agregado -->
+                </tr>
+                {% endfor %}
+            {% endfor %}
+            <!-- Fila para el total de ventas -->
+            <tr class="total-row">
+                <td colspan="6" style="text-align: right;">Total de Ventas:</td>
+                <td>{{ total_ventas }}</td> <!-- El total ya tiene el prefijo "Q" en el contexto -->
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

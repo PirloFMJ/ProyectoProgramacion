@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Categoría</title>
     <link rel="stylesheet" href="{% static '/css/styles.css' %}">
-    <title>Crear Categoría</title>
 </head>
 <body>
     <div class="container mt-5">
@@ -27,11 +27,11 @@
             {% else %}
                 <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
                 <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
                 <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
                 <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
                 <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
                 <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
-                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
                 <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
                 <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
                 <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
@@ -50,17 +50,18 @@
            </ul>
        </nav>
         <div class="content">
-            <div class="center-wrapper">
-                <div class="contenedor-login">
-                    <h2>Crear Nueva Categoría</h2>
-                    <form method="POST">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <button type="submit" class="btn btn-primary" id="btn-enlaces" >Guardar</button>
-                        <a href="{% url 'categorias_listar' %}" class="btn btn-secondary" id="btn-enlaces">Cancelar</a>
-                    </form>
-                </div>
-            </div>
-        </div>
+        <div class="center-wrapper">
+            <div class="contenedor-login">
+        <h2>Editar Categoría</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-success" id="btn-enlaces">Guardar Cambios</button>
+            <a href="{% url 'categorias_listar' %}" class="btn btn-secondary" id="btn-enlaces">Cancelar</a>
+        </form>
+   </div>
+    </div>
+ </div>
+</div>
 </body>
 </html>

@@ -21,7 +21,7 @@ class ClienteForm(forms.ModelForm):
             'nit_cliente': forms.TextInput(attrs={'class': 'form-control'}),
             'nombre_completo': forms.TextInput(attrs={'class': 'form-control'}),
             'num_telefono': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'email': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     # Validacion de nit

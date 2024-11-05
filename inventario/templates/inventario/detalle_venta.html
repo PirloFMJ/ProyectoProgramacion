@@ -9,38 +9,84 @@
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Detalle de Venta - ID: {{ venta.id_venta }}</h2>
-        <p><strong>Fecha de Venta:</strong> {{ venta.fecha_venta }}</p>
-        <p><strong>Cliente:</strong> {{ venta.nit_cliente.nombre_completo }}</p>
-        <p><strong>Total de Venta:</strong> {{ venta.total_venta }}</p>
-
-        <h3>Productos en esta Venta</h3>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for detalle in detalles %}
-                <tr>
-                    <td>{{ detalle.id_producto.nombre_producto }}</td>
-                    <td>{{ detalle.cantidad_producto }}</td>
-                    <td>{{ detalle.id_producto.precio_venta }}</td>
-                    <td>{{ detalle.total_producto }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4">No hay productos en esta venta.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <a href="{% url 'ventas_listar' %}" class="btn btn-secondary">Volver al Listado de Ventas</a>
+    <nav class="sidebar">
+           <ul class="sidebar">
+            {% if es_empleado %}
+                <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de Ventas</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
+                <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+                <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+                <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'inventario' %}">Inventario</a></li>
+                <li><a href="{% url 'compra' %}">Comprar</a></li>
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+           </ul>
+       </nav>
+    <div class="content">
+        <div class="contenedor-crear">
+            <h2>Detalle de Venta - ID: {{ venta.id_venta }}</h2>
+            <p><strong>Fecha de Venta:</strong> {{ venta.fecha_venta }}</p>
+            <p><strong>Cliente:</strong> {{ venta.nit_cliente.nombre_completo }}</p>
+            <p><strong>Total de Venta:</strong> {{ venta.total_venta }}</p>
+        <div class="content content-listados">
+            <h3>Productos en esta Venta</h3>
+        <div class = "table-container">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                        <tr>
+                            <td>{{ detalle.id_producto.nombre_producto }}</td>
+                            <td>{{ detalle.cantidad_producto }}</td>
+                            <td>{{ detalle.id_producto.precio_venta }}</td>
+                            <td>{{ detalle.total_producto }}</td>
+                        </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hay productos en esta venta.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'ventas_listar' %}" class="btn btn-secondary" id="btn-enlaces">Volver al Listado de Ventas</a>
+        </div>
+        </div>
+        </div>
     </div>
 </body>
 </html>

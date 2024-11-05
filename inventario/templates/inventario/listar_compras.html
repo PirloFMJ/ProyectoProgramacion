@@ -4,40 +4,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="{% static '/css/styles.css' %}">
+    <link rel="stylesheet" href="{% static '/css/styles.css' %}">
     <title>Listado de Compras</title>
 </head>
 <body>
     <div class="container mt-5">
-        <h2>Listado de Compras</h2>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID Compra</th>
-                    <th>Fecha</th>
-                    <th>Proveedor</th>
-                    <th>Total</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for compra in compras %}
-                <tr>
-                    <td>{{ compra.id_compra }}</td>
-                    <td>{{ compra.fecha_compra }}</td>
-                    <td>{{ compra.nit_proveedor.nombre_proveedor }}</td>
-                    <td>{{ compra.total_compra }}</td>
-                    <td>
-                        <a href="{% url 'detalle_compra' compra.id_compra %}" class="btn btn-info">Ver más</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5">No hay compras registradas.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <nav class="sidebar">
+           <ul class="sidebar">
+            {% if es_empleado %}
+                <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de Ventas</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
+                <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+                <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
+                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+                <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'compra' %}">Comprar</a></li>
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+           </ul>
+       </nav>
+        <div class="content content-listados">
+            <h2>Listado de Compras</h2>
+        <div class = "table-container">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>ID Compra</th>
+                        <th>Fecha</th>
+                        <th>Proveedor</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td>{{ compra.id_compra }}</td>
+                        <td>{{ compra.fecha_compra }}</td>
+                        <td>{{ compra.nit_proveedor.nombre_proveedor }}</td>
+                        <td>{{ compra.total_compra }}</td>
+                        <td>
+                            <a href="{% url 'detalle_compra' compra.id_compra %}" class="btn btn-info" id="btn-enlaces">Ver más</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">No hay compras registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
     </div>
 </body>
 </html>
