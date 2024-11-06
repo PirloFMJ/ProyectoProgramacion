@@ -45,7 +45,7 @@ class CategoriaForm(forms.ModelForm):
 class EmpleadoForm(forms.ModelForm):
     class Meta:
         model = Empleado
-        fields = ['nombre_usuario', 'puesto']  # Solo incluimos los campos necesarios para crear un empleado
+        fields = ['nombre_usuario', 'puesto']  
         widgets = {
             'nombre_usuario': forms.TextInput(attrs={'class': 'form-control'}),
             'puesto': forms.TextInput(attrs={'class': 'form-control'}),

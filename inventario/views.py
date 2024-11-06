@@ -23,7 +23,7 @@ def crear_producto(request):
         form = ProductoForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('productos_listar')  # Redirigir a la lista de productos (cambia esto según tu URL)
+            return redirect('productos_listar')  # Redirigir a la lista de productos 
     else:
         form = ProductoForm()
     return render(request, 'inventario/crear_producto.html', {'form': form})
@@ -37,14 +37,13 @@ def crear_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('clientes_listar')  # Redirigir a la lista de clientes (cambia esto según tu URL)
-    else:
+            return redirect('clientes_listar')  # Redirigir a la lista de clientes 
         form = ClienteForm()
     return render(request, 'inventario/crear_cliente.html', {'form': form})
 
-def listar_clientes(request): #Sirve para ver la lista de clientes uqe hay
-    clientes = Cliente.objects.all()  # Obtiene todos los clientes de la base de datos
-    return render(request, 'inventario/listar_clientes.html', {'clientes': clientes})  # Renderiza el template con los clientes
+def listar_clientes(request): #Sirve para ver la lista de clientes que hay
+    clientes = Cliente.objects.all()  #Obtiene todos los clientes de la base de datos
+    return render(request, 'inventario/listar_clientes.html', {'clientes': clientes})  #Renderiza el template con los clientes
 
 def crear_categoria(request):
     if request.method == 'POST':
@@ -103,7 +102,7 @@ def venta_view(request):
     return render(request, 'inventario/venta.html', {
         'productos': productos,
         'clientes': clientes,
-        'empleados': empleados  # Asegúrate de incluir empleados en el contexto
+        'empleados': empleados  
     })
 
 
@@ -119,7 +118,7 @@ def compra_view(request):
     })
 
 
-@csrf_exempt  # Solo para depuración; en producción maneja CSRF adecuadamente
+@csrf_exempt  
 @transaction.atomic
 def completar_compra(request):
     if request.method == 'POST':
@@ -145,7 +144,7 @@ def completar_compra(request):
             # Crear la compra con el proveedor y el empleado
             compra = Compra.objects.create(
                 nit_proveedor=proveedor,
-                id_usuario=empleado,  # Ahora asignamos un Empleado en lugar de request.user
+                id_usuario=empleado,  
                 fecha_compra=timezone.now(),
                 total_compra=total_compra
             )
@@ -162,7 +161,7 @@ def completar_compra(request):
                 except Producto.DoesNotExist:
                     return JsonResponse({'error': f'Producto con nombre {producto_nombre} no existe'}, status=400)
 
-                # Crear el detalle de compra incluyendo la fecha de expiración
+                # Detalle de la compra
                 DetalleCompra.objects.create(
                     id_compra=compra,
                     id_producto=producto,
@@ -192,7 +191,7 @@ def completar_compra(request):
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-@csrf_exempt  # Solo para depuración; en producción maneja CSRF adecuadamente
+@csrf_exempt  
 @transaction.atomic
 def completar_venta(request):
     if request.method == 'POST':
@@ -249,7 +248,7 @@ def completar_venta(request):
 
                 for inventario_item in inventarios:
                     if cantidad_vendida <= 0:
-                        break  # Ya se ha cubierto toda la cantidad vendida
+                        break 
 
                     if inventario_item.cantidad_disponible >= cantidad_vendida:
                         # Si el inventario actual tiene suficiente cantidad para cubrir la venta
@@ -262,11 +261,9 @@ def completar_venta(request):
                         inventario_item.cantidad_disponible = 0
                         inventario_item.save()
 
-            # Si todo sale bien, devuelve un mensaje de éxito
             return JsonResponse({'success': 'Venta completada y inventario actualizado'})
 
         except Exception as e:
-            # Capturar cualquier error inesperado y devolverlo en formato JSON
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Método no permitido'}, status=405)
@@ -454,7 +451,6 @@ def eliminar_proveedor(request, proveedor_id):
         return JsonResponse({'success': True})
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
-##############################
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
