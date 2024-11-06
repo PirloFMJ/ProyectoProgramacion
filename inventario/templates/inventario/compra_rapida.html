@@ -44,12 +44,12 @@
                             <td>${producto.precio.toFixed(2)}</td>
                             <td>${producto.total.toFixed(2)}</td>
                             <td>${fechaVencimiento}</td>
-                            <td><button type="button" onclick="eliminarProducto(this)">X</button></td>
+                            <td><button type="button" onclick="eliminarProducto(this)" id="btn-enlaces" style="background-color: red">X</button></td>
                         `;
                         tbody.appendChild(row);
                     });
 
-                    document.getElementById("total_compra").innerText = `Q${totalCompra.toFixed(2)}`;
+                    document.getElementById("total_compra").innerText = `Q${data.total_compra.toFixed(2)}`;
                 }
             })
             .catch(error => console.error("Error:", error));
@@ -164,59 +164,62 @@
 <div class="content">
             <div class="center-wrapper">
                 <div class="contenedor-crear">
-                    <h1>Compra Rápida</h1>
-                        <div class="form-group">
+    <h1>Compra Rápida</h1>
+    <div class="form-group">
                         <label for="cantidad_minima">Cantidad Mínima en Inventario:</label>
                         <input type="number" id="cantidad_minima" min="1" class="form-control">
                         <label for="cantidad_comprar">Cantidad a Comprar:</label>
-                        <input type="number" id="cantidad_comprar " min="1" class="form-control">
+                        <input type="number" id="cantidad_comprar" min="1" class="form-control">
                         <label for="fecha_vencimiento">Fecha de Vencimiento:</label>
                         <input type="date" id="fecha_vencimiento" class="form-control">
                         <br>
                         <br>
-                        <button onclick="generarProductos()" id="btn-enlaces">Generar Productos</button>
+                        <button onclick="generarProductos()" id="btn-enlaces" >Generar Productos</button>
                         </div>
-                        <hr>
-                        <h2>Productos a Comprar</h2>
-                        <table id="pedidoTable" class="content-listados-compra table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Cantidad</th>
-                                    <th>Precio</th>
-                                    <th>Total</th>
-                                    <th>Fecha de Vencimiento</th>
-                                    <th>Eliminar</th>
-                                </tr>
-                            </thead>
-                        <tbody>
-                            <!-- Los productos generados se agregarán aquí -->
-                        </tbody>
-                        </table>
-                    <div class="form-group">
-                        <h3>Total de la Compra: <span id="total_compra">Q0.00</span></h3>
-                        <label for="proveedor">Seleccionar Proveedor:</label>
-                        <select id="proveedor" class="form-control">
-                            <option value="">Seleccione un Proveedor</option>
-                                {% for proveedor in proveedores %}
-                                <option value="{{ proveedor.nit_proveedor }}">{{ proveedor.nombre_proveedor }}</option>
-                                {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="empleado">Seleccionar Empleado:</label>
-                        <select id="empleado" class="form-control">
-                        <option value="">Seleccione un Empleado</option>
-                            {% for empleado in empleados %}
-                        <option value="{{ empleado.id_usuario }}">{{ empleado.nombre_usuario }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <button onclick="completarCompra()" id="btn-enlaces">Completar Compra</button>
-                    <a href="{% url 'compra' %}" class="btn btn-warning" id="btn-enlaces" style="padding: 6px 10px 7px 10px">Cancelar</a>
+
+    <h2>Productos a Comprar</h2>
+    <table id="productosTable" class="content-listados-compra table table-bordered">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Total</th>
+                <th>Fecha de Vencimiento</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los productos generados se agregarán aquí -->
+        </tbody>
+    </table>
+<div class="form-group">
+    <h3>Total de la Compra: <span id="total_compra">Q0.00</span></h3>
+
+    <div>
+        <label for="proveedor">Seleccionar Proveedor:</label>
+        <select id="proveedor" class="form-control">
+            <option value="">Seleccione un Proveedor</option>
+            {% for proveedor in proveedores %}
+                <option value="{{ proveedor.nit_proveedor }}">{{ proveedor.nombre_proveedor }}</option>
+            {% endfor %}
+        </select>
+ </div>
+<div class="form-group">
+        <label for="empleado">Seleccionar Empleado:</label>
+        <select id="empleado" class="form-control">
+            <option value="">Seleccione un Empleado</option>
+            {% for empleado in empleados %}
+                <option value="{{ empleado.id_usuario }}">{{ empleado.nombre_usuario }}</option>
+            {% endfor %}
+        </select>
+</div>
+        <button onclick="completarCompra()" id="btn-enlaces">Completar Compra</button>
+        <a href="{% url 'compra' %}" class="btn btn-warning" id="btn-enlaces" style="padding: 6px 10px 7px 10px">Cancelar</a>
+    </div>
                 </div>
             </div>
-    </div>
+</div>
 </div>
 </body>
 </html>

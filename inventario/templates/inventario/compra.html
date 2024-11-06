@@ -56,7 +56,7 @@
                     <td>${cantidad}</td>
                     <td>${precio.toFixed(2)}</td>
                     <td>${totalProducto.toFixed(2)}</td>
-                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)" id="btn-enlaces">X</button></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(this)" id="btn-enlaces" style="background-color: red">X</button></td>
                 `;
 
                 actualizarTotal();
@@ -242,6 +242,7 @@
 
             <button type="button" class="btn btn-warning" onclick="completarPedido()" id="btn-enlaces">Completar Pedido</button>
             <button type="button" class="btn btn-warning" onclick="location.href='{% url 'crear_proveedor' %}'" id="btn-enlaces">Agregar Proveedor</button>
+            <a href="{% url 'compra_rapida' %}" class="btn btn-warning" id="btn-enlaces" style="padding: 6px 10px 7px 10px">Ir a Compra Rápida</a>
         </div>
     </div>
         </div>
