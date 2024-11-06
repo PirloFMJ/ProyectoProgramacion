@@ -37,8 +37,10 @@ def crear_cliente(request):
         form = ClienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('clientes_listar')  # Redirigir a la lista de clientes 
+            return redirect('clientes_listar')
+    else:
         form = ClienteForm()
+
     return render(request, 'inventario/crear_cliente.html', {'form': form})
 
 def listar_clientes(request): #Sirve para ver la lista de clientes que hay
