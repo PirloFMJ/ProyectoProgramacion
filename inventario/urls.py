@@ -4,7 +4,7 @@ from .views import (crear_producto, crear_cliente, listar_clientes, crear_catego
 crear_proveedor, listar_proveedores, listar_productos, inicio, venta_view, compra_view, completar_compra, completar_venta, inventario_view,
 editar_proveedor, eliminar_proveedor, editar_categoria, eliminar_categoria, editar_cliente, eliminar_cliente,
 listar_compras, detalle_compra, editar_empleado, eliminar_empleado, editar_producto, eliminar_producto, listar_ventas, detalle_venta, reporte_ventas, reporte_compras,
-reporte_inventario)
+reporte_inventario, compra_rapida, completar_compra_rapida)
 urlpatterns = [
 path('producto/crear/', crear_producto, name='crear_producto'),
     path('productos/', listar_productos, name='productos_listar'),
@@ -40,6 +40,8 @@ path('producto/crear/', crear_producto, name='crear_producto'),
     path('reporte_ventas/', reporte_ventas, name='reporte_ventas'),
     path('reporte_compras/', reporte_compras, name='reporte_compras'),
     path('reporte_inventario/<str:formato>/', reporte_inventario, name='reporte_inventario'),
+    path('compra_rapida/', compra_rapida, name='compra_rapida'),
+    path('completar_compra_rapida/', completar_compra_rapida, name='completar_compra_rapida'),
     # Redirige la raíz al login
     path('', login_view),
     path('logout/', cerrar_sesion, name='cerrar_sesion'),

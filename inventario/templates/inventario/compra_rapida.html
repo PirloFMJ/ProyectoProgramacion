@@ -1,0 +1,225 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Compra Rápida</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        function generarProductos() {
+            const cantidadMinima = document.getElementById("cantidad_minima").value;
+            const cantidadComprar = document.getElementById("cantidad_comprar").value;
+            const fechaVencimiento = document.getElementById("fecha_vencimiento").value;
+
+            if (!cantidadMinima || cantidadMinima <= 0 || !cantidadComprar || cantidadComprar <= 0 || !fechaVencimiento) {
+                alert("Por favor completa todos los campos requeridos.");
+                return;
+            }
+
+            fetch("{% url 'compra_rapida' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    cantidad_minima: parseInt(cantidadMinima),
+                    cantidad_comprar: parseInt(cantidadComprar),
+                    fecha_vencimiento: fechaVencimiento
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const tbody = document.querySelector("#productosTable tbody");
+                    tbody.innerHTML = "";
+
+                    data.productos.forEach(producto => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${producto.nombre_producto}</td>
+                            <td>${producto.cantidad}</td>
+                            <td>${producto.precio.toFixed(2)}</td>
+                            <td>${producto.total.toFixed(2)}</td>
+                            <td>${fechaVencimiento}</td>
+                            <td><button type="button" onclick="eliminarProducto(this)" id="btn-enlaces" style="background-color: red">X</button></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+
+                    document.getElementById("total_compra").innerText = `Q${data.total_compra.toFixed(2)}`;
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+        function eliminarProducto(button) {
+            const row = button.parentNode.parentNode;
+            row.remove();
+
+            let totalCompra = 0;
+            document.querySelectorAll("#productosTable tbody tr").forEach(row => {
+                const total = parseFloat(row.children[3].innerText);
+                totalCompra += total;
+            });
+            document.getElementById("total_compra").innerText = `Q${totalCompra.toFixed(2)}`;
+        }
+
+        function completarCompra() {
+            const proveedor = document.getElementById("proveedor").value;
+            const empleado = document.getElementById("empleado").value;
+            const productos = [];
+            const rows = document.querySelectorAll("#productosTable tbody tr");
+
+            if (!proveedor || !empleado || rows.length === 0) {
+                alert("Por favor, selecciona un proveedor, un empleado y asegúrate de que hay productos en la lista.");
+                return;
+            }
+
+            rows.forEach(row => {
+                const columns = row.children;
+                productos.push({
+                    nombre_producto: columns[0].innerText,
+                    cantidad: parseInt(columns[1].innerText),
+                    precio: parseFloat(columns[2].innerText),
+                    total: parseFloat(columns[3].innerText),
+                    fecha_vencimiento: columns[4].innerText
+                });
+            });
+
+            console.log("Enviando los siguientes datos para completar compra:");
+            console.log("Proveedor:", proveedor);
+            console.log("Empleado:", empleado);
+            console.log("Productos:", productos);
+
+            fetch("{% url 'completar_compra_rapida' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                    proveedor: proveedor,
+                    empleado: empleado,
+                    productos: productos
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.success);
+                    location.reload();
+                } else {
+                    alert(data.error || "Ocurrió un error");
+                }
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+<div class="container mt-5">
+<nav class="sidebar">
+           <ul class="sidebar">
+            {% if es_empleado %}
+                <!-- Opciones disponibles para usuarios en el grupo "Empleados" -->
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de Ventas</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% else %}
+                <!-- Opciones disponibles para otros roles (por ejemplo, administrador) -->
+                <li><a href="{% url 'crear_producto' %}">Crear Producto</a></li>
+                <li><a href="{% url 'crear_categoria' %}">Crear Categoría de Producto</a></li>
+                <li><a href="{% url 'crear_cliente' %}">Crear Cliente</a></li>
+                <li><a href="{% url 'crear_empleado' %}">Crear Empleado</a></li>
+                <li><a href="{% url 'crear_proveedor' %}">Crear Proveedor</a></li>
+                <li><a href="{% url 'productos_listar' %}">Lista de Productos</a></li>
+                <li><a href="{% url 'categorias_listar' %}">Lista de Categorías de Producto</a></li>
+                <li><a href="{% url 'ventas_listar' %}">Lista de ventas</a></li>
+                <li><a href="{% url 'compras_listar' %}">Lista de compras</a></li>
+                <li><a href="{% url 'clientes_listar' %}">Lista de Clientes</a></li>
+                <li><a href="{% url 'empleados_listar' %}">Lista de Empleados</a></li>
+                <li><a href="{% url 'proveedores_listar' %}">Lista de Proveedores</a></li>
+                <li><a href="{% url 'inventario' %}">Inventario</a></li>
+                <li><a href="{% url 'venta' %}">Vender</a></li>
+                <li class="sidebar-footer">
+                    {% if user.is_authenticated %}
+                        <p>Usuario: {{ user.username }}</p>
+                        <a href="{% url 'cerrar_sesion' %}" class="btn btn-danger btn-sm">Cerrar sesión</a>
+                    {% endif %}
+                </li>
+            {% endif %}
+           </ul>
+       </nav>
+<div class="content">
+            <div class="center-wrapper">
+                <div class="contenedor-crear">
+    <h1>Compra Rápida</h1>
+    <div class="form-group">
+                        <label for="cantidad_minima">Cantidad Mínima en Inventario:</label>
+                        <input type="number" id="cantidad_minima" min="1" class="form-control">
+                        <label for="cantidad_comprar">Cantidad a Comprar:</label>
+                        <input type="number" id="cantidad_comprar" min="1" class="form-control">
+                        <label for="fecha_vencimiento">Fecha de Vencimiento:</label>
+                        <input type="date" id="fecha_vencimiento" class="form-control">
+                        <br>
+                        <br>
+                        <button onclick="generarProductos()" id="btn-enlaces" >Generar Productos</button>
+                        </div>
+
+    <h2>Productos a Comprar</h2>
+    <table id="productosTable" class="content-listados-compra table table-bordered">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio</th>
+                <th>Total</th>
+                <th>Fecha de Vencimiento</th>
+                <th>Eliminar</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los productos generados se agregarán aquí -->
+        </tbody>
+    </table>
+<div class="form-group">
+    <h3>Total de la Compra: <span id="total_compra">Q0.00</span></h3>
+
+    <div>
+        <label for="proveedor">Seleccionar Proveedor:</label>
+        <select id="proveedor" class="form-control">
+            <option value="">Seleccione un Proveedor</option>
+            {% for proveedor in proveedores %}
+                <option value="{{ proveedor.nit_proveedor }}">{{ proveedor.nombre_proveedor }}</option>
+            {% endfor %}
+        </select>
+ </div>
+<div class="form-group">
+        <label for="empleado">Seleccionar Empleado:</label>
+        <select id="empleado" class="form-control">
+            <option value="">Seleccione un Empleado</option>
+            {% for empleado in empleados %}
+                <option value="{{ empleado.id_usuario }}">{{ empleado.nombre_usuario }}</option>
+            {% endfor %}
+        </select>
+</div>
+        <button onclick="completarCompra()" id="btn-enlaces">Completar Compra</button>
+        <a href="{% url 'compra' %}" class="btn btn-warning" id="btn-enlaces" style="padding: 6px 10px 7px 10px">Cancelar</a>
+    </div>
+                </div>
+            </div>
+</div>
+</div>
+</body>
+</html>

@@ -6,6 +6,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.db import transaction
 from django.http import JsonResponse
 from django.utils import timezone
+from django.db.models import Sum, F
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.template.loader import get_template
@@ -803,3 +804,141 @@ def generar_reporte_pdf(inventario):
     if pisa_status.err:
         return HttpResponse('Hubo un error al generar el PDF', status=500)
     return response
+
+def compra_rapida(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            cantidad_minima = int(data.get('cantidad_minima'))
+            cantidad_a_comprar = int(data.get('cantidad_comprar'))
+            fecha_vencimiento = data.get('fecha_vencimiento')
+
+            # Obtener productos con cantidad en inventario menor o igual a la cantidad mínima
+            productos_faltantes = Producto.objects.annotate(
+                total_disponible=Sum('inventario__cantidad_disponible')
+            ).filter(
+                Q(total_disponible__lte=cantidad_minima) | Q(total_disponible__isnull=True)
+            )
+
+            productos_compra = []
+            total_compra = 0
+
+            # Procesar cada producto faltante
+            for producto in productos_faltantes:
+                total_a_comprar = cantidad_a_comprar
+                precio = float(producto.precio_compra)
+                total_producto = total_a_comprar * precio
+
+                productos_compra.append({
+                    'id_producto': producto.id_producto,
+                    'nombre_producto': producto.nombre_producto,
+                    'cantidad': total_a_comprar,
+                    'precio': precio,
+                    'total': total_producto,
+                    'fecha_vencimiento': fecha_vencimiento
+                })
+
+                total_compra += total_producto
+
+            return JsonResponse({
+                'productos': productos_compra,
+                'total_compra': total_compra
+            })
+
+        except Exception as e:
+            print("Error en compra_rapida:", e)
+            return JsonResponse({'error': str(e)}, status=500)
+
+    # Renderizar la página de compra rápida
+    proveedores = Proveedor.objects.all()
+    empleados = Empleado.objects.all()
+    return render(request, 'inventario/compra_rapida.html', {
+        'proveedores': proveedores,
+        'empleados': empleados
+    })
+
+@transaction.atomic
+def completar_compra_rapida(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            proveedor_id = data.get('proveedor')
+            empleado_id = data.get('empleado')
+            productos = data.get('productos', [])
+
+            # Validación de proveedor
+            try:
+                proveedor = Proveedor.objects.get(nit_proveedor=proveedor_id)
+            except Proveedor.DoesNotExist:
+                return JsonResponse({'error': 'Proveedor no válido'}, status=400)
+
+            # Validación de empleado
+            try:
+                empleado = Empleado.objects.get(id_usuario=empleado_id)
+            except Empleado.DoesNotExist:
+                return JsonResponse({'error': 'Empleado no válido'}, status=400)
+
+            # Verificar si la lista de productos está vacía
+            if not productos:
+                return JsonResponse({'error': 'No se enviaron productos para la compra'}, status=400)
+
+            total_compra = 0
+
+            # Crear la compra
+            compra = Compra.objects.create(
+                nit_proveedor=proveedor,
+                id_usuario=empleado,
+                fecha_compra=timezone.now(),
+                total_compra=0  # Se actualizará luego con el total real
+            )
+
+            # Procesar cada producto
+            for item in productos:
+                producto_nombre = item.get('nombre_producto')
+                cantidad = item.get('cantidad')
+                precio = item.get('precio')
+                fecha_vencimiento = item.get('fecha_vencimiento')
+
+                # Validación de campos necesarios
+                if not producto_nombre or not cantidad or not precio:
+                    return JsonResponse({'error': 'Faltan datos en uno de los productos'}, status=400)
+
+                # Obtener o crear el producto
+                try:
+                    producto = Producto.objects.get(nombre_producto=producto_nombre)
+                except Producto.DoesNotExist:
+                    return JsonResponse({'error': f'Producto {producto_nombre} no encontrado'}, status=400)
+
+                # Calcular el total por producto y sumarlo al total general
+                total_producto = float(precio) * int(cantidad)
+                total_compra += total_producto
+
+                # Crear el detalle de la compra
+                DetalleCompra.objects.create(
+                    id_compra=compra,
+                    id_producto=producto,
+                    cantidad_producto=cantidad,
+                    total_producto=total_producto,
+                    fecha_expiracion=fecha_vencimiento
+                )
+
+                # Actualizar o crear el inventario para el producto
+                inventario, created = Inventario.objects.get_or_create(
+                    id_producto=producto,
+                    fecha_expiracion=fecha_vencimiento,
+                    defaults={'cantidad_disponible': 0}
+                )
+                inventario.cantidad_disponible += int(cantidad)
+                inventario.save()
+
+            # Actualizar el total de la compra
+            compra.total_compra = total_compra
+            compra.save()
+
+            return JsonResponse({'success': 'Compra rápida completada y productos añadidos al inventario'})
+
+        except Exception as e:
+            print("Error en completar_compra_rapida:", e)
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
