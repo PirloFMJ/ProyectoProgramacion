@@ -209,8 +209,8 @@ form {
 }
 
 .table-container {
-    max-height: 400px; /* Ajusta la altura según lo necesites */
-    overflow-y: auto;  /* Habilita el scrollbar vertical */
+    max-height: 400px; 
+    overflow-y: auto;  
 }
 
 .table-container .table {
@@ -372,10 +372,10 @@ hr {
 }
 
 .cuerpo-inicio {
-    background-image: url("fondo.jpg"); /* Usa el nombre de tu imagen */
-    background-size: cover; /* Ajusta el tamaño para cubrir toda la pantalla */
-    background-position: center; /* Centra la imagen */
-    background-repeat: no-repeat; /* Evita que se repita */
+    background-image: url("fondo.jpg"); 
+    background-size: cover; 
+    background-position: center; 
+    background-repeat: no-repeat; 
 }
 .cuerpo-inicio::before {
     content: "";
@@ -384,7 +384,7 @@ hr {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6); /* Ajusta la opacidad (0.5 en este caso) */
+    background: rgba(0, 0, 0, 0.6); 
     z-index: 1;
 }
 

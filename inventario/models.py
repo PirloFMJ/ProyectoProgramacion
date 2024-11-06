@@ -103,7 +103,7 @@ class DetalleCompra(models.Model):
     id_producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     cantidad_producto = models.IntegerField()
     total_producto = models.DecimalField(max_digits=10, decimal_places=2)
-    fecha_expiracion = models.DateField(null=True, blank=True)  # Nuevo campo de fecha de caducidad
+    fecha_expiracion = models.DateField(null=True, blank=True)  
 
     def __str__(self):
         return f"Detalle de compra {self.id_compra}"
